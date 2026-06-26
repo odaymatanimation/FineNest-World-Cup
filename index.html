@@ -1,0 +1,98 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FINE NEST World Cup Challenge</title>
+  <meta name="description" content="FINE NEST World Cup Challenge game and campaign film.">
+  <link rel="stylesheet" href="styles.css?v=netlify-layout-3">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero" id="top" aria-labelledby="heroTitle">
+      <div class="hero-copy">
+        <h1 id="heroTitle" aria-label="One Shared Dream"><span>One Shared</span><span>Dream</span></h1>
+        <p class="red-line">A game for every supporter</p>
+        <p class="support-line">Leave your Social handle after completing the Highscore to receive the Finest Award for being the Finest player</p>
+        <button class="tap-button" id="tapToPlay" type="button" aria-label="Tap to play the FINE NEST World Cup Challenge">
+          <img src="assets/tap-to-play-clean.png" alt="Tap to play">
+        </button>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <img class="supporters" src="assets/supporters.png" alt="">
+      </div>
+    </section>
+
+    <section class="video-section" id="film">
+      <div class="video-heading">
+        <h2>Watch the lyric film.</h2>
+        <a href="https://youtu.be/XdGV_pKU1Vs?si=7K80sYuiM6BW9omY" target="_blank" rel="noreferrer">Watch on YouTube</a>
+      </div>
+      <div class="video-tabs" role="tablist" aria-label="Video format switcher">
+        <button class="active" type="button" data-video="web">Web format</button>
+        <button type="button" data-video="mobile">Mobile format</button>
+      </div>
+      <div class="video-wrap web active" data-panel="web">
+        <video src="assets/video/finest-worldcup-horizontal.mp4" controls playsinline preload="none"></video>
+      </div>
+      <div class="video-wrap mobile" data-panel="mobile">
+        <video src="assets/video/finest-worldcup-portrait.mp4" controls playsinline preload="none"></video>
+      </div>
+    </section>
+  </main>
+
+  <div class="game-modal" id="gameModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="gameModalTitle">
+    <div class="modal-card" role="document">
+      <button class="modal-close" id="modalClose" type="button" aria-label="Close game">x</button>
+
+      <div class="modal-info">
+        <p class="section-tag">FINE NEST World Cup Challenge</p>
+        <h2 id="gameModalTitle">Catch every ball.</h2>
+        <p class="modal-copy">Enter your social handle, catch the falling FINE NEST balls with the paint bucket, and push for the top score.</p>
+
+        <aside class="leaderboard" aria-label="Finest Players Board">
+          <div class="leaderboard-head">
+            <p class="section-tag">Finest Players Board</p>
+            <span>Best <b id="bestValue">0</b></span>
+          </div>
+          <h3>High scores</h3>
+          <ol id="leaderboardList"></ol>
+        </aside>
+      </div>
+
+      <div class="modal-play-area">
+        <div class="game-stage">
+          <div class="hud" aria-live="polite">
+            <span>Player <b id="playerLabel">-</b></span>
+            <span>Score <b id="scoreValue">0</b></span>
+            <span>Lives <b id="livesValue">3</b></span>
+          </div>
+          <canvas id="catchGame" width="900" height="520" aria-label="Catch the falling FINE NEST football with the paint bucket"></canvas>
+          <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+          <div class="game-overlay" id="gameOverlay">
+            <div class="handle-card" id="handleCard">
+              <h3>Enter your social handle</h3>
+              <p>Your score saves to the Finest Players Board on this browser.</p>
+              <label for="handleInput">Social handle</label>
+              <div class="handle-row">
+                <input id="handleInput" type="text" maxlength="24" placeholder="@yourhandle" autocomplete="off">
+                <button id="confirmHandle" type="button">OK</button>
+              </div>
+              <p class="field-error" id="handleError" aria-live="polite"></p>
+            </div>
+            <div class="result-card" id="resultCard" hidden>
+              <h3 id="resultTitle">Every supporter counts.</h3>
+              <p id="resultText">Your score is saved.</p>
+              <button id="playAgain" type="button">Play Again</button>
+            </div>
+          </div>
+          <p class="controls-note">Move with keyboard arrows, mouse drag or touch drag. Catch the ball before it drops.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="bgMusic" src="assets/audio/finest-wc-2026.mp3" preload="auto" loop></audio>
+  <script src="app.js?v=netlify-layout-3"></script>
+</body>
+</html>
