@@ -43,7 +43,9 @@ function playBackgroundMusic() {
 }
 
 const storageKey = 'fineNestChallengeScoresLive';
+const scoresApiPath = '/.netlify/functions/scores';
 let scores = loadScores();
+let scoresOnline = false;
 let currentHandle = '';
 let newBestCelebrated = false;
 let confettiPieces = [];
@@ -70,14 +72,36 @@ const game = {
 };
 
 function normalizeHandle(value) {
-  let handle = value.trim().replace(/\s+/g, '');
-  if (handle && !handle.startsWith('@')) handle = '@' + handle;
-  return handle.slice(0, 24);
+  const raw = String(value || '').trim().replace(/\s+/g, '').replace(/^@+/, '').replace(/[^a-zA-Z0-9._-]/g, '');
+  return raw ? '@' + raw.slice(0, 23) : '';
+}
+
+function normalizeScore(value) {
+  const score = Number(value);
+  if (!Number.isFinite(score)) return 0;
+  return Math.max(0, Math.min(999999, Math.floor(score)));
+}
+
+function normalizeScores(list) {
+  const byHandle = new Map();
+  (Array.isArray(list) ? list : []).forEach((item) => {
+    const handle = normalizeHandle(item?.handle);
+    const score = normalizeScore(item?.score);
+    if (!handle || score <= 0) return;
+    const dateValue = Number(item?.date);
+    const date = Number.isFinite(dateValue) ? dateValue : Date.now();
+    const key = handle.toLowerCase();
+    const existing = byHandle.get(key);
+    if (!existing || score > existing.score || (score === existing.score && date > existing.date)) {
+      byHandle.set(key, { handle, score, date });
+    }
+  });
+  return Array.from(byHandle.values()).sort((a, b) => b.score - a.score || a.date - b.date).slice(0, 10);
 }
 
 function loadScores() {
   try {
-    return JSON.parse(localStorage.getItem(storageKey) || '[]');
+    return normalizeScores(JSON.parse(localStorage.getItem(storageKey) || '[]'));
   } catch {
     return [];
   }
@@ -98,15 +122,50 @@ function renderLeaderboard() {
   if (!list.length) {
     const li = document.createElement('li');
     li.className = 'empty';
-    li.innerHTML = '<span>No player yet</span><strong>0</strong>';
+    const label = document.createElement('span');
+    label.textContent = 'No player yet';
+    const score = document.createElement('strong');
+    score.textContent = '0';
+    li.append(label, score);
     leaderboardList.appendChild(li);
     return;
   }
   list.forEach((item) => {
     const li = document.createElement('li');
-    li.innerHTML = '<span>' + item.handle + '<small>' + new Date(item.date).toLocaleDateString() + '</small></span><strong>' + item.score + '</strong>';
+    const label = document.createElement('span');
+    label.textContent = item.handle;
+    const date = document.createElement('small');
+    date.textContent = new Date(item.date).toLocaleDateString();
+    label.appendChild(date);
+    const score = document.createElement('strong');
+    score.textContent = item.score;
+    li.append(label, score);
     leaderboardList.appendChild(li);
   });
+}
+
+function upsertLocalScore(handle, score, date = Date.now()) {
+  scores = normalizeScores([...scores, { handle, score, date }]);
+  saveScores();
+  renderLeaderboard();
+}
+
+async function loadPublicScores() {
+  try {
+    const response = await fetch(scoresApiPath, {
+      headers: { accept: 'application/json' },
+      cache: 'no-store'
+    });
+    if (!response.ok) throw new Error('Score board unavailable');
+    const data = await response.json();
+    scores = normalizeScores(data.scores);
+    scoresOnline = true;
+    saveScores();
+  } catch {
+    scoresOnline = false;
+  }
+  renderLeaderboard();
+  updateHud();
 }
 
 function updateHud() {
@@ -254,31 +313,59 @@ function stopGame() {
   cancelAnimationFrame(game.frame);
 }
 
-function saveResult() {
-  if (game.score <= 0) return { saved: false, newBest: false };
+async function saveResult() {
+  const score = normalizeScore(game.score);
+  if (score <= 0) return { saved: false, newBest: false, online: scoresOnline };
+
   const previousBest = bestScore();
-  const existing = scores.find((item) => item.handle.toLowerCase() === currentHandle.toLowerCase());
-  if (existing) {
-    existing.score = Math.max(existing.score, game.score);
-    existing.date = Date.now();
-  } else {
-    scores.push({ handle: currentHandle, score: game.score, date: Date.now() });
+  const date = Date.now();
+  upsertLocalScore(currentHandle, score, date);
+
+  try {
+    const response = await fetch(scoresApiPath, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ handle: currentHandle, score, date })
+    });
+    if (!response.ok) throw new Error('Score save unavailable');
+    const data = await response.json();
+    scores = normalizeScores(data.scores);
+    scoresOnline = true;
+    saveScores();
+    renderLeaderboard();
+    return {
+      saved: true,
+      newBest: Boolean(data.newBest ?? score > previousBest),
+      online: true
+    };
+  } catch {
+    scoresOnline = false;
+    renderLeaderboard();
+    return { saved: true, newBest: score > previousBest, online: false };
   }
-  scores.sort((a, b) => b.score - a.score);
-  scores = scores.slice(0, 10);
-  saveScores();
-  renderLeaderboard();
-  return { saved: true, newBest: game.score > previousBest };
 }
 
-function endGame() {
+async function endGame() {
   stopGame();
-  const result = saveResult();
   overlay.classList.remove('hidden');
   handleCard.hidden = true;
   resultCard.hidden = false;
+  resultTitle.textContent = 'Saving score...';
+  resultText.textContent = 'Checking the Finest Players Board.';
+  updateHud();
+
+  const result = await saveResult();
   resultTitle.textContent = result.newBest ? 'New high score!' : 'Every supporter counts.';
-  resultText.textContent = result.saved ? 'Score ' + game.score + ' saved for ' + currentHandle + '.' : 'Score 0 recorded. Catch at least one ball to enter the Finest Players Board.';
+  if (result.saved && result.online) {
+    resultText.textContent = 'Score ' + game.score + ' saved online for ' + currentHandle + '.';
+  } else if (result.saved) {
+    resultText.textContent = 'Score ' + game.score + ' saved on this browser. The public board will update when the online score server is available.';
+  } else {
+    resultText.textContent = 'Score 0 recorded. Catch at least one ball to enter the Finest Players Board.';
+  }
   if (result.newBest && !newBestCelebrated) burstConfetti();
   updateHud();
 }
@@ -429,4 +516,5 @@ Promise.all([
   renderLeaderboard();
   updateHud();
   syncVideo();
+  loadPublicScores();
 });
