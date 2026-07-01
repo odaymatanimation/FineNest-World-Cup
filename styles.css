@@ -1,5 +1,6 @@
 :root {
-  --display-font: "News Gothic Condensed BT", "NewsGothic BT", "Barlow Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  color-scheme: only light;
+  --display-font: "News Gothic Condensed BT", "NewsGothic BT", Impact, "Arial Narrow", "Roboto Condensed", sans-serif;
   --yellow: #f7b512;
   --black: #050505;
   --ink: #070707;
@@ -8,11 +9,12 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; background: var(--black); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   margin: 0;
   background: var(--black);
   color: var(--ink);
+  color-scheme: only light;
   font-family: var(--display-font);
   overflow-x: hidden;
   font-weight: 900;
@@ -37,6 +39,8 @@ img, video, canvas { display: block; max-width: 100%; }
   overflow: hidden;
   border: 2px solid #000;
   border-radius: 14px 14px 0 0;
+  background-color: var(--yellow);
+  forced-color-adjust: none;
   background:
     radial-gradient(circle at 52% 22%, rgba(255,255,255,.18), transparent 18%),
     linear-gradient(135deg, #fbbf24 0%, var(--yellow) 58%, #eca506 100%);
@@ -426,10 +430,12 @@ img, video, canvas { display: block; max-width: 100%; }
 @media (max-width: 560px) {
   .page-shell { padding: 0; }
   .hero { border-radius: 0; }
-  .hero-copy { padding: 68px 20px 0; }
-  .hero h1 { font-size: clamp(58px, 17.5vw, 86px); }
-  .support-line { font-size: clamp(25px, 7.1vw, 33px); max-width: 350px; margin-top: 16px; }
-  .tap-button { width: min(370px, 86vw); }
+  .hero-copy { padding: 52px 18px 0; }
+  .hero h1 { width: min(100%, 350px); font-size: clamp(48px, 13.4vw, 64px); line-height: .9; overflow-wrap: normal; }
+  .hero h1 span { white-space: normal; }
+  .red-line { width: min(100%, 350px); font-size: clamp(28px, 8.4vw, 38px); line-height: .96; }
+  .support-line { font-size: clamp(22px, 6.4vw, 30px); max-width: 350px; margin-top: 18px; }
+  .tap-button { width: min(330px, 88vw); margin-top: 24px; }
   .hero-visual { margin-top: 10px; }
   .supporters { width: min(1040px, 262vw); margin-top: 0; margin-bottom: -18px; }
   .video-section { padding: 54px 14px 70px; }
@@ -448,6 +454,14 @@ img, video, canvas { display: block; max-width: 100%; }
   .result-card { padding: 22px; box-shadow: 6px 6px 0 #000; }
   .handle-row { grid-template-columns: 1fr; }
   .handle-row button { width: 100%; }
-  .modal-info h2 { font-size: 48px; }
+  .modal-info h2 { font-size: clamp(38px, 11vw, 48px); }
   .leaderboard li { grid-template-columns: 34px 1fr auto; font-size: 16px; }
+}
+
+@media (max-width: 380px) {
+  .hero-copy { padding: 46px 14px 0; }
+  .hero h1 { width: min(100%, 330px); font-size: clamp(43px, 12.2vw, 54px); }
+  .red-line { width: min(100%, 330px); font-size: clamp(25px, 7.7vw, 34px); }
+  .support-line { max-width: 330px; font-size: clamp(20px, 6vw, 27px); }
+  .tap-button { width: min(310px, 90vw); }
 }
