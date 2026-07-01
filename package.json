@@ -1,0 +1,13 @@
+{
+  "name": "fine-nest-world-cup-challenge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo Static site ready",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@netlify/blobs": "latest"
+  }
+}
