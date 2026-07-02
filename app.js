@@ -42,7 +42,7 @@ function playBackgroundMusic() {
   }
 }
 
-const storageKey = 'fineNestChallengeScoresLive';
+const storageKey = 'fineNestChallengeScoresLiveV2';
 const scoresApiPath = '/.netlify/functions/scores';
 let scores = loadScores();
 let scoresOnline = false;
@@ -361,6 +361,15 @@ function setHandleScreen() {
   resizeGame();
 }
 
+function retryGame() {
+  if (!currentHandle) {
+    setHandleScreen();
+    return;
+  }
+  handleInput.value = currentHandle;
+  startGame();
+}
+
 function openModal() {
   playBackgroundMusic();
   gameModal.classList.add('is-open');
@@ -465,9 +474,9 @@ async function endGame() {
   const result = await saveResult();
   resultTitle.textContent = result.newBest ? 'New high score!' : 'Every supporter counts.';
   if (result.saved && result.online) {
-    resultText.textContent = 'Score ' + game.score + ' saved online for ' + currentHandle + '.';
+    resultText.textContent = 'Score ' + game.score + ' saved online for ' + currentHandle + '. Retry to improve the same entry.';
   } else if (result.saved) {
-    resultText.textContent = 'Score ' + game.score + ' saved on this browser. The public board will update when the online score server is available.';
+    resultText.textContent = 'Score ' + game.score + ' saved on this browser. Retry to improve the same entry.';
   } else {
     resultText.textContent = 'Score 0 recorded. Catch at least one ball to enter the Finest Players Board.';
   }
@@ -586,7 +595,7 @@ document.addEventListener('keyup', (event) => {
   if (event.key === 'ArrowRight') game.right = false;
 });
 confirmHandle.addEventListener('click', startGame);
-playAgain.addEventListener('click', setHandleScreen);
+playAgain.addEventListener('click', retryGame);
 handleInput.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') startGame();
 });
