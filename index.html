@@ -7,8 +7,8 @@
   <meta name="description" content="FINE NEST World Cup Challenge game and campaign film.">
   <meta name="color-scheme" content="light only">
   <meta name="theme-color" content="#f7b512">
-  <link rel="stylesheet" href="styles.css?v=play-tune-1">
-  <link rel="stylesheet" href="styles-overrides-play-tune.css?v=play-tune-1">
+  <link rel="stylesheet" href="styles.css?v=score-retry-1">
+  <link rel="stylesheet" href="styles-overrides-play-tune.css?v=score-retry-1">
 </head>
 <body>
   <main class="page-shell">
@@ -32,7 +32,6 @@
 
     <section class="video-section" id="film">
       <div class="video-heading">
-        <h2>Watch the lyric film.</h2>
         <a href="https://youtu.be/XdGV_pKU1Vs?si=7K80sYuiM6BW9omY" target="_blank" rel="noreferrer">Watch on YouTube</a>
       </div>
       <div class="video-tabs" role="tablist" aria-label="Video format switcher">
@@ -79,7 +78,7 @@
           <div class="game-overlay" id="gameOverlay">
             <div class="handle-card" id="handleCard">
               <h3>Enter your social handle</h3>
-              <p>Your score saves to the public Finest Players Board.</p>
+              <p>Your best score saves automatically. Retry with the same handle to improve one board entry.</p>
               <label for="handleInput">Social handle</label>
               <div class="handle-row">
                 <input id="handleInput" type="text" maxlength="24" placeholder="@yourhandle" autocomplete="off">
@@ -89,8 +88,8 @@
             </div>
             <div class="result-card" id="resultCard" hidden>
               <h3 id="resultTitle">Every supporter counts.</h3>
-              <p id="resultText">Your score is saved.</p>
-              <button id="playAgain" type="button">Play Again</button>
+              <p id="resultText">Your score saves automatically.</p>
+              <button id="playAgain" type="button">Retry</button>
             </div>
           </div>
           <p class="controls-note">Move with keyboard arrows, mouse drag or touch drag. Catch the ball before it drops.</p>
@@ -100,6 +99,6 @@
   </div>
 
   <audio id="bgMusic" src="assets/audio/finest-wc-2026.mp3" preload="auto" loop></audio>
-  <script src="app.js?v=play-tune-1"></script>
+  <script src="app.js?v=score-retry-1"></script>
 </body>
 </html>
