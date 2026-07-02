@@ -51,6 +51,10 @@ let newBestCelebrated = false;
 let confettiPieces = [];
 let confettiFrame = 0;
 
+const BASE_BALL_SPEED = 2.35;
+const SPEED_GAIN = 0.11;
+const SNAIL_INTERVAL = 30;
+
 const game = {
   running: false,
   frame: 0,
@@ -63,7 +67,11 @@ const game = {
   ballX: 120,
   ballY: -100,
   ballSize: 72,
-  speed: 3.2,
+  speed: BASE_BALL_SPEED,
+  dropType: 'ball',
+  nextDropType: 'ball',
+  nextSnailScore: SNAIL_INTERVAL,
+  snailMessageFrame: 0,
   score: 0,
   lives: 3,
   left: false,
@@ -209,14 +217,26 @@ function resizeGame() {
   confettiCanvas.height = canvas.height;
   confettiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   fitBucketToStage();
-  game.ballSize = Math.max(54, Math.min(82, game.width * 0.085));
+  game.ballSize = Math.max(59, Math.min(90, game.width * 0.0935));
   drawGame();
 }
 
-function resetBall() {
-  const margin = game.ballSize * 0.7;
+function dropWidth() {
+  return game.dropType === 'snail' ? game.ballSize * 1.38 : game.ballSize;
+}
+
+function dropHeight() {
+  return game.dropType === 'snail' ? game.ballSize * 0.54 : game.ballSize;
+}
+
+function resetBall(type = game.nextDropType || 'ball') {
+  game.dropType = type;
+  game.nextDropType = 'ball';
+  const width = dropWidth();
+  const height = dropHeight();
+  const margin = Math.max(game.ballSize * 0.7, width * 0.55);
   game.ballX = margin + Math.random() * (game.width - margin * 2);
-  game.ballY = -game.ballSize - Math.random() * 140;
+  game.ballY = -height - Math.random() * 140;
 }
 
 function drawBackground() {
@@ -234,11 +254,59 @@ function drawBackground() {
   ctx.fillRect(0, game.height - 12, game.width, 12);
 }
 
+function drawSnail() {
+  const w = dropWidth();
+  const h = dropHeight();
+  const x = game.ballX - w / 2;
+  const y = game.ballY + game.ballSize * 0.2;
+  ctx.save();
+  ctx.lineWidth = Math.max(3, game.ballSize * 0.045);
+  ctx.strokeStyle = '#050505';
+  ctx.fillStyle = '#ffd12b';
+  ctx.beginPath();
+  ctx.roundRect(x, y + h * 0.28, w * 0.86, h * 0.48, h * 0.2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#f7b512';
+  ctx.beginPath();
+  ctx.arc(x + w * 0.35, y + h * 0.34, h * 0.38, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + w * 0.7, y + h * 0.32);
+  ctx.lineTo(x + w * 0.84, y + h * 0.02);
+  ctx.moveTo(x + w * 0.78, y + h * 0.34);
+  ctx.lineTo(x + w * 0.94, y + h * 0.08);
+  ctx.stroke();
+  ctx.fillStyle = '#050505';
+  ctx.beginPath();
+  ctx.arc(x + w * 0.84, y + h * 0.02, Math.max(3, h * 0.07), 0, Math.PI * 2);
+  ctx.arc(x + w * 0.94, y + h * 0.08, Math.max(3, h * 0.07), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawSpeedResetNotice() {
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, game.snailMessageFrame / 30);
+  ctx.fillStyle = '#050505';
+  ctx.fillRect(game.width / 2 - 106, 18, 212, 38);
+  ctx.fillStyle = '#f7b512';
+  ctx.font = '700 20px Arial Narrow, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('SPEED RESET', game.width / 2, 38);
+  ctx.restore();
+}
+
 function drawGame() {
   drawBackground();
-  if (ballImage.complete && ballImage.naturalWidth) {
+  if (game.dropType === 'snail') {
+    drawSnail();
+  } else if (ballImage.complete && ballImage.naturalWidth) {
     ctx.drawImage(ballImage, game.ballX - game.ballSize / 2, game.ballY, game.ballSize, game.ballSize);
   }
+  if (game.snailMessageFrame > 0) drawSpeedResetNotice();
   const bucketLeft = game.bucketX - game.bucketWidth / 2;
   if (bucketImage.complete && bucketImage.naturalWidth) {
     ctx.drawImage(bucketImage, bucketLeft, game.bucketY, game.bucketWidth, game.bucketHeight);
@@ -251,7 +319,37 @@ function clearConfetti() {
   confettiCtx.clearRect(0, 0, game.width, game.height);
 }
 
+function enterPlayFullscreen() {
+  gameModal.classList.add('playing-fullscreen');
+  if (!document.fullscreenElement && gameModal.requestFullscreen) {
+    gameModal.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+  }
+  if (screen.orientation?.lock) {
+    screen.orientation.lock('portrait').catch(() => {});
+  }
+  setTimeout(resizeGame, 160);
+}
+
+function exitPlayFullscreen() {
+  gameModal.classList.remove('playing-fullscreen');
+  if (document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen().catch(() => {});
+  }
+  if (screen.orientation?.unlock) {
+    try { screen.orientation.unlock(); } catch {}
+  }
+  setTimeout(resizeGame, 120);
+}
+
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && !game.running) {
+    gameModal.classList.remove('playing-fullscreen');
+  }
+  resizeGame();
+});
+
 function setHandleScreen() {
+  gameModal.classList.remove('playing-fullscreen');
   overlay.classList.remove('hidden');
   handleCard.hidden = false;
   resultCard.hidden = true;
@@ -277,6 +375,7 @@ function openModal() {
 
 function closeModal() {
   stopGame();
+  exitPlayFullscreen();
   clearConfetti();
   gameModal.classList.remove('is-open');
   gameModal.setAttribute('aria-hidden', 'true');
@@ -294,10 +393,15 @@ function startGame() {
   overlay.classList.add('hidden');
   handleCard.hidden = true;
   resultCard.hidden = true;
+  enterPlayFullscreen();
   game.running = true;
   game.score = 0;
   game.lives = 3;
-  game.speed = 3.2;
+  game.speed = BASE_BALL_SPEED;
+  game.dropType = 'ball';
+  game.nextDropType = 'ball';
+  game.nextSnailScore = SNAIL_INTERVAL;
+  game.snailMessageFrame = 0;
   game.bucketX = game.width / 2;
   newBestCelebrated = false;
   clearConfetti();
@@ -350,6 +454,7 @@ async function saveResult() {
 
 async function endGame() {
   stopGame();
+  exitPlayFullscreen();
   overlay.classList.remove('hidden');
   handleCard.hidden = true;
   resultCard.hidden = false;
@@ -375,35 +480,50 @@ function loop() {
   if (game.left) game.bucketX -= Math.max(7, game.width * 0.012);
   if (game.right) game.bucketX += Math.max(7, game.width * 0.012);
   game.bucketX = Math.min(Math.max(game.bucketX, game.bucketWidth / 2), game.width - game.bucketWidth / 2);
-  game.ballY += game.speed;
+  const activeSpeed = game.dropType === 'snail' ? Math.max(1.8, BASE_BALL_SPEED * 0.86) : game.speed;
+  game.ballY += activeSpeed;
 
   const bucketLeft = game.bucketX - game.bucketWidth / 2;
   const bucketRight = game.bucketX + game.bucketWidth / 2;
   const catchTop = game.bucketY + game.bucketHeight * 0.05;
   const catchBottom = game.bucketY + game.bucketHeight * 0.55;
-  const ballBottom = game.ballY + game.ballSize;
-  const caught = ballBottom >= catchTop && ballBottom <= catchBottom && game.ballX > bucketLeft + 8 && game.ballX < bucketRight - 8;
+  const dropBottom = game.ballY + dropHeight();
+  const caught = dropBottom >= catchTop && dropBottom <= catchBottom && game.ballX > bucketLeft + 8 && game.ballX < bucketRight - 8;
 
   if (caught) {
-    game.score += 1;
-    game.speed += 0.18;
-    if (game.score > bestScore() && !newBestCelebrated) {
-      newBestCelebrated = true;
-      burstConfetti();
+    if (game.dropType === 'snail') {
+      game.speed = BASE_BALL_SPEED;
+      game.snailMessageFrame = 110;
+    } else {
+      game.score += 1;
+      game.speed += SPEED_GAIN;
+      if (game.score >= game.nextSnailScore) {
+        game.nextDropType = 'snail';
+        game.nextSnailScore += SNAIL_INTERVAL;
+      }
+      if (game.score > bestScore() && !newBestCelebrated) {
+        newBestCelebrated = true;
+        burstConfetti();
+      }
     }
     resetBall();
     updateHud();
   } else if (game.ballY > game.height + 12) {
-    game.lives -= 1;
-    updateHud();
-    if (game.lives <= 0) {
-      drawGame();
-      endGame();
-      return;
+    if (game.dropType === 'snail') {
+      resetBall();
+    } else {
+      game.lives -= 1;
+      updateHud();
+      if (game.lives <= 0) {
+        drawGame();
+        endGame();
+        return;
+      }
+      resetBall();
     }
-    resetBall();
   }
 
+  if (game.snailMessageFrame > 0) game.snailMessageFrame -= 1;
   drawGame();
   game.frame = requestAnimationFrame(loop);
 }
