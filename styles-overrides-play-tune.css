@@ -1,0 +1,16 @@
+:root{--display-font:'News Gothic Condensed BT','News Gothic Condensed','NewsGothic BT','NewsGothic Condensed','Arial Narrow','Roboto Condensed','Barlow Condensed','Liberation Sans Narrow',sans-serif;--display-weight:800;--copy-weight:700;}  
+body,button,input,.section-tag,.hero h1,.red-line,.video-heading h2,.modal-info h2,.leaderboard h3,.handle-card h3,.result-card h3,.hud span,.hud b,.leaderboard li,.controls-note{font-family:var(--display-font);font-weight:var(--display-weight);}  
+.support-line,.modal-copy,.handle-card p,.result-card p,.handle-row input{font-family:var(--display-font);font-weight:var(--copy-weight);} 
+.sr-only{position:absolute!important;width:0!important;height:0!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important;}  
+.hero-type-art{width:720px;max-width:92vw;margin:0;}  
+.hero-type-art picture,.hero-type-art img{display:block;width:100%;height:auto;}  
+.game-modal.playing-fullscreen{padding:0;place-items:stretch;background:#000;} 
+.game-modal.playing-fullscreen .modal-info{display:none;} 
+.game-modal.playing-fullscreen .modal-card{width:100%;height:100dvh;max-height:100dvh;grid-template-columns:1fr;border:0;border-radius:0;overflow:hidden;} 
+.game-modal.playing-fullscreen .modal-play-area{padding:0;} 
+.game-modal.playing-fullscreen .game-stage{min-height:100dvh;height:100dvh;display:grid;grid-template-rows:auto 1fr auto;border:0;} 
+.game-modal.playing-fullscreen #catchGame{width:100%;height:auto;min-height:0;} 
+.game-modal.playing-fullscreen .game-overlay{inset:72px 18px 52px;} 
+
+.hero-type-mobile{display:none!important;}
+@media (max-width:560px){.hero-type-desktop{display:none!important;}.hero-type-mobile{display:block!important;}}
