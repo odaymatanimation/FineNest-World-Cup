@@ -1,7 +1,7 @@
 import { getStore } from '@netlify/blobs';
 
 const STORE_NAME = 'finest-world-cup-scores';
-const BOARD_KEY = 'leaderboard';
+const BOARD_KEY = 'leaderboard-v2';
 const MAX_SCORES = 20;
 const jsonHeaders = {
   'access-control-allow-origin': '*',
