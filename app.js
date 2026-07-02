@@ -51,9 +51,9 @@ let newBestCelebrated = false;
 let confettiPieces = [];
 let confettiFrame = 0;
 
-const BASE_BALL_SPEED = 2.35;
-const SPEED_GAIN = 0.11;
-const SNAIL_INTERVAL = 30;
+const BASE_BALL_SPEED = 3.15;
+const SPEED_GAIN = 0.12;
+const SNAIL_SCORES = [50, 100, 150];
 
 const game = {
   running: false,
@@ -70,7 +70,7 @@ const game = {
   speed: BASE_BALL_SPEED,
   dropType: 'ball',
   nextDropType: 'ball',
-  nextSnailScore: SNAIL_INTERVAL,
+  nextSnailScore: SNAIL_SCORES[0],
   snailMessageFrame: 0,
   score: 0,
   lives: 3,
@@ -409,7 +409,7 @@ function startGame() {
   game.speed = BASE_BALL_SPEED;
   game.dropType = 'ball';
   game.nextDropType = 'ball';
-  game.nextSnailScore = SNAIL_INTERVAL;
+  game.nextSnailScore = SNAIL_SCORES[0];
   game.snailMessageFrame = 0;
   game.bucketX = game.width / 2;
   newBestCelebrated = false;
@@ -506,9 +506,9 @@ function loop() {
     } else {
       game.score += 1;
       game.speed += SPEED_GAIN;
-      if (game.score >= game.nextSnailScore) {
+      if (game.score === game.nextSnailScore) {
         game.nextDropType = 'snail';
-        game.nextSnailScore += SNAIL_INTERVAL;
+        game.nextSnailScore = SNAIL_SCORES.find((score) => score > game.score) || null;
       }
       if (game.score > bestScore() && !newBestCelebrated) {
         newBestCelebrated = true;
